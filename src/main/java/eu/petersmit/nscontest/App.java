@@ -4,11 +4,11 @@ package eu.petersmit.nscontest;
 import org.apache.commons.cli.*;
 
 import java.io.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * Hello world!
- *
  */
 public class App {
 
@@ -24,11 +24,18 @@ public class App {
 
     public void run() throws IOException {
 
+        GameData gameData = new GameData();
+        IOManager.readConnection(gameData, inputDirectory + "/verbindingen.csv");
+        IOManager.readPassengers(gameData, inputDirectory + "/reizigers.csv");
+        IOManager.readPersonnel(gameData, inputDirectory + "/personeel.csv");
+        IOManager.readTrains(gameData, inputDirectory + "/treinstellen.csv");
+
+        SearchTree searchTree = new SearchTree(gameData);
+
         outWriter.write("Hello");
     }
 
-    public static void main( String[] args )
-    {
+    public static void main(String[] args) {
         Options options = new Options();
         options.addOption("h", "help", false, "print this message");
         options.addOption("d", "input-directory", true, "directory to find the input csv files. Default: Current working directory");
@@ -37,7 +44,7 @@ public class App {
         CommandLineParser parser = new BasicParser();
         try {
             // parse the command line arguments
-            CommandLine line = parser.parse( options, args );
+            CommandLine line = parser.parse(options, args);
             if (line.hasOption("help")) {
                 HelpFormatter formatter = new HelpFormatter();
                 formatter.printHelp("nscontest", options);
@@ -52,13 +59,14 @@ public class App {
 
             App app = new App(directory, w);
             app.run();
+            w.close();
 
-        }
-        catch( ParseException exp ) {
+        } catch (ParseException exp) {
             // oops, something went wrong
             LOG.severe("Parsing failed.  Reason: " + exp.getMessage());
         } catch (IOException e) {
-            LOG.severe("File IO error.  Reason: " + e.getMessage());
+            // An IO execption is critical. Let's just log it
+            LOG.log(Level.SEVERE, "File IO error", e);
         }
     }
 
