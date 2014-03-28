@@ -1,0 +1,9 @@
+Id,Type,Huidig,Eindbestemming
+1,Intercity,Utrecht,Utrecht
+2,Intercity,Rotterdam,Amsterdam
+3,Intercity,Rotterdam,Utrecht
+4,SprinterA,Gouda,Utrecht
+5,SprinterA,Utrecht,Utrecht
+6,SprinterA,Rotterdam,Amsterdam
+7,SprinterB,Amsterdam,Amsterdam
+8,SprinterB,Rotterdam,Rotterdam

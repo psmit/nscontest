@@ -1,0 +1,11 @@
+Van,Naar,Reizigers
+Amsterdam,Utrecht,2000
+Utrecht,Amsterdam,1500
+Gouda,Utrecht,1000
+Utrecht,Gouda,1000
+Rotterdam,Gouda,1500
+Gouda,Rotterdam,500
+Amsterdam,Gouda,250
+Gouda,Amsterdam,1000
+Amsterdam,Rotterdam,1250
+Rotterdam,Amsterdam,750
