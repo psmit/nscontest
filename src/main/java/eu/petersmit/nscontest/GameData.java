@@ -14,9 +14,17 @@ enum PersonnelType {
 }
 
 enum TrainType {
-    INTERCITY,
-    SPRINTERA,
-    SPRINTERB
+    INTERCITY(140,600),
+    SPRINTERA(125,400),
+    SPRINTERB(140,150);
+
+    public final int speed;
+    public final int capacity;
+
+    private TrainType(int speed, int capacity) {
+        this.speed = speed;
+        this.capacity = capacity;
+    }
 }
 
 public class GameData {
@@ -42,17 +50,7 @@ public class GameData {
     }
 
     public int getTravelTime(int fromStation, int toStation, TrainType trainType) {
-        int speed = 130;
-        switch (trainType) {
-            case INTERCITY:
-            case SPRINTERB:
-                speed = 140;
-                break;
-            case SPRINTERA:
-                speed = 125;
-        }
-
-        return (int) floor((double) trackDistances[fromStation][toStation] / ((double) speed / 60.0));
+        return (int) floor((double) trackDistances[fromStation][toStation] / ((double) trainType.speed / 60.0));
     }
 
     public String getStationName(int toStation) {
