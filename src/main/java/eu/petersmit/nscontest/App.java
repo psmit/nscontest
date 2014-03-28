@@ -10,9 +10,22 @@ import java.util.logging.Logger;
  * Hello world!
  *
  */
-public class App 
-{
-    final static Logger logger = Logger.getLogger("test");
+public class App {
+
+    private final static Logger LOG = Logger.getLogger("test");
+
+    private String input_directory;
+    private Writer out_writer;
+
+    public App(String input_directory, Writer out_writer) {
+        this.input_directory = input_directory;
+        this.out_writer = out_writer;
+    }
+
+    public void run() throws IOException {
+
+        out_writer.write("Hello");
+    }
 
     public static void main( String[] args )
     {
@@ -39,14 +52,15 @@ public class App
                 w = new FileWriter(line.getOptionValue('o'));
             }
 
+            App app = new App(directory, w);
+            app.run();
+
         }
         catch( ParseException exp ) {
             // oops, something went wrong
-            logger.severe("Parsing failed.  Reason: " + exp.getMessage());
-            System.exit(2);
+            LOG.severe("Parsing failed.  Reason: " + exp.getMessage());
         } catch (IOException e) {
-            logger.severe("File IO error.  Reason: " + e.toString());
-            System.exit(1);
+            LOG.severe("File IO error.  Reason: " + e.getMessage());
         }
     }
 
