@@ -4,6 +4,7 @@ package eu.petersmit.nscontest;
 import org.apache.commons.cli.*;
 
 import java.io.*;
+import java.util.logging.Logger;
 
 /**
  * Hello world!
@@ -11,6 +12,8 @@ import java.io.*;
  */
 public class App 
 {
+    final static Logger logger = Logger.getLogger("test");
+
     public static void main( String[] args )
     {
         Options options = new Options();
@@ -39,12 +42,12 @@ public class App
         }
         catch( ParseException exp ) {
             // oops, something went wrong
-            System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
+            logger.severe("Parsing failed.  Reason: " + exp.getMessage());
+            System.exit(2);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.severe("File IO error.  Reason: " + e.toString());
+            System.exit(1);
         }
-
-
     }
 
 
