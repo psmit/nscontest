@@ -32,7 +32,8 @@ public class App {
 
         SearchTree searchTree = new SearchTree(gameData);
 
-        outWriter.write("Hello");
+        DepthFirstSearch dfs = new DepthFirstSearch(searchTree, gameData);
+        IOManager.writeMoves(gameData, dfs.search(), outWriter);
     }
 
     public static void main(String[] args) {

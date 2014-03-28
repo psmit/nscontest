@@ -2,18 +2,21 @@ package eu.petersmit.nscontest;
 
 
 import au.com.bytecode.opencsv.CSVReader;
+import au.com.bytecode.opencsv.CSVWriter;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static java.util.Arrays.fill;
 
 /**
  * IOManager is a collection of static methods that read values from
- * csv files into a gamedata object.
+ * csv files into a gamedata object and write moves back to csv
  * <p/>
  * No checks are done, but the connections file (verbindingen.csv)
  * should be read first to initialize the station names.
@@ -37,13 +40,13 @@ public class IOManager {
      * @throws IOException In case the file can not be read
      */
     static void readConnection(GameData gameData, String filename) throws IOException {
-        ArrayList<String[]> ConnectionEntries = new ArrayList<String[]>();
+        List<String[]> ConnectionEntries = new ArrayList<String[]>();
 
         Set<String> stationNames = new HashSet<String>();
 
         CSVReader csvReader = new CSVReader(new FileReader(filename), ',', '"', 1);
         for (String[] line : csvReader.readAll()) {
-            if (line.length == 4) {
+            if (line.length >= 4) {
                 ConnectionEntries.add(line);
                 stationNames.add(line[0]);
                 stationNames.add(line[1]);
@@ -55,12 +58,13 @@ public class IOManager {
         gameData.trackBlocked = new boolean[stationNames.size()][stationNames.size()];
 
         for (int[] arr : gameData.trackDistances) fill(arr, -1);
-
         for (boolean[] arr : gameData.trackBlocked) fill(arr, true);
 
         int j = 0;
-        for (String name : stationNames)
-            gameData.stationNames[j++] = name;
+        for (String name : stationNames) {
+            gameData.stationNames[j] = name;
+            j++;
+        }
 
         for (String[] line : ConnectionEntries) {
             int from = gameData.getStationId(line[0]);
@@ -86,24 +90,24 @@ public class IOManager {
      * @throws IOException In case the file can not be read
      */
     static void readPersonnel(GameData gameData, String filename) throws IOException {
-        ArrayList<String[]> personnelEntries = new ArrayList<String[]>();
+        List<String[]> personnelEntries = new ArrayList<String[]>();
 
         CSVReader csvReader = new CSVReader(new FileReader(filename), ',', '"', 1);
         for (String[] line : csvReader.readAll()) {
-            if (line.length == 4) personnelEntries.add(line);
+            if (line.length >= 4) personnelEntries.add(line);
         }
 
         gameData.personnelTypes = new PersonnelType[personnelEntries.size()];
-        gameData.personnelIds = new int[personnelEntries.size()];
+        gameData.personnelIds = new String[personnelEntries.size()];
         gameData.personnelStations = new int[personnelEntries.size()];
         gameData.personnelEndTimes = new int[personnelEntries.size()];
 
         for (int i = 0; i < personnelEntries.size(); ++i) {
             String[] line = personnelEntries.get(i);
-            gameData.personnelIds[i] = Integer.parseInt(line[0]);
+            gameData.personnelIds[i] = line[0];
             gameData.personnelTypes[i] = "Machinist".equals(line[1]) ? PersonnelType.DRIVER : PersonnelType.CONDUCTOR;
             gameData.personnelStations[i] = gameData.getStationId(line[2]);
-            gameData.personnelEndTimes[i] = getTime(line[3]);
+            gameData.personnelEndTimes[i] = getInputTime(line[3]);
         }
     }
 
@@ -125,7 +129,7 @@ public class IOManager {
 
         CSVReader csvReader = new CSVReader(new FileReader(filename), ',', '"', 1);
         for (String[] line : csvReader.readAll()) {
-            if (line.length != 3) continue;
+            if (line.length < 3) continue;
             gameData.numPassengers[gameData.getStationId(line[0])][gameData.getStationId(line[1])] = Integer.parseInt(line[2]);
         }
     }
@@ -143,28 +147,54 @@ public class IOManager {
      * @throws IOException In case the file can not be read
      */
     static void readTrains(GameData gameData, String filename) throws IOException {
-        ArrayList<String[]> trainEntries = new ArrayList<String[]>();
+        List<String[]> trainEntries = new ArrayList<String[]>();
 
         CSVReader csvReader = new CSVReader(new FileReader(filename), ',', '"', 1);
         for (String[] line : csvReader.readAll()) {
-            if (line.length == 4) trainEntries.add(line);
+            if (line.length >= 4) trainEntries.add(line);
         }
 
         gameData.trainTypes = new TrainType[trainEntries.size()];
-        gameData.trainIds = new int[trainEntries.size()];
+        gameData.trainIds = new String[trainEntries.size()];
         gameData.trainStartStation = new int[trainEntries.size()];
         gameData.trainEndStation = new int[trainEntries.size()];
 
         for (int i = 0; i < trainEntries.size(); ++i) {
             String[] line = trainEntries.get(i);
-            gameData.trainIds[i] = Integer.parseInt(line[0]);
+            gameData.trainIds[i] = line[0];
             gameData.trainTypes[i] = getTrainType(line[1]);
             gameData.trainStartStation[i] = gameData.getStationId(line[2]);
             gameData.trainEndStation[i] = gameData.getStationId(line[3]);
         }
     }
 
-    private static int getTime(String time) {
+    /**
+     * Write moves
+     *
+     * @param moves A list of moves to write
+     * @param w     Writer to write the moves to
+     */
+    static void writeMoves(GameData gameData, List<Move> moves, Writer w) {
+        CSVWriter csvWriter = new CSVWriter(w, ',', CSVWriter.NO_QUOTE_CHARACTER);
+        for (Move move : moves) {
+
+            List<String> parts = new ArrayList<String>();
+            parts.add(getOutputTime(move.timeStart));
+            parts.add(gameData.getStationName(move.fromStation));
+            parts.add(getOutputTime(move.timeEnd));
+            parts.add(gameData.getStationName(move.toStation));
+            parts.add(gameData.getTrainId(move.train));
+            parts.add(gameData.getPersonnelId(move.conductor));
+            parts.add(gameData.getPersonnelId(move.driver));
+            parts.add("");
+
+            csvWriter.writeNext(parts.toArray(new String[parts.size()]));
+            // do something with move
+            csvWriter.writeNext(new String[0]);
+        }
+    }
+
+    private static int getInputTime(String time) {
         String[] parts = time.split(":", 2);
         int hours = Integer.parseInt(parts[0]);
         int minutes = Integer.parseInt(parts[1]);
@@ -174,6 +204,14 @@ public class IOManager {
         if (hours == 18) return minutes - 30;
 
         return (hours - 18) * 60 + minutes - 30;
+    }
+
+    private static String getOutputTime(int time) {
+        time += 30;
+        int hours = (18 + time / 60) % 24;
+        int minutes = time % 60;
+
+        return String.format("%02d%02d", hours, minutes);
     }
 
     private static TrainType getTrainType(String name) {

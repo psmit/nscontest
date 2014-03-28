@@ -1,6 +1,6 @@
 Van,Naar,Afstand,Geblokkeerd
 Amsterdam,Rotterdam,50,0
-Rotterdam,Gouda,25,0,
+Rotterdam,Gouda,25,0
 Amsterdam,Gouda,25,0
 Gouda,Utrecht,20,0
 Utrecht,Amsterdam,35,1
