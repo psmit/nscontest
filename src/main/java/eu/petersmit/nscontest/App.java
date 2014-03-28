@@ -14,17 +14,17 @@ public class App {
 
     private final static Logger LOG = Logger.getLogger("test");
 
-    private String input_directory;
-    private Writer out_writer;
+    private String inputDirectory;
+    private Writer outWriter;
 
-    public App(String input_directory, Writer out_writer) {
-        this.input_directory = input_directory;
-        this.out_writer = out_writer;
+    public App(String inputDirectory, Writer outWriter) {
+        this.inputDirectory = inputDirectory;
+        this.outWriter = outWriter;
     }
 
     public void run() throws IOException {
 
-        out_writer.write("Hello");
+        outWriter.write("Hello");
     }
 
     public static void main( String[] args )
@@ -44,13 +44,11 @@ public class App {
                 return;
             }
 
-            String directory = ".";
-            if (line.hasOption('d')) directory = line.getOptionValue('d');
+            String directory = line.getOptionValue('d', ".");
 
-            Writer w = new PrintWriter(System.out);
-            if (line.hasOption('o') && !line.getOptionValue('o').equals("-")) {
-                w = new FileWriter(line.getOptionValue('o'));
-            }
+            Writer w = line.hasOption('o') && !"-".equals(line.getOptionValue('o'))
+                    ? new FileWriter(line.getOptionValue('o'))
+                    : new PrintWriter(System.out);
 
             App app = new App(directory, w);
             app.run();
