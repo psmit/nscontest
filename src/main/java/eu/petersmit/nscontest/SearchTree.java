@@ -1,10 +1,14 @@
 package eu.petersmit.nscontest;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import static eu.petersmit.nscontest.Util.powerset;
 import static java.util.Arrays.fill;
 import static java.util.Collections.sort;
+import static org.apache.commons.lang.ArrayUtils.toPrimitive;
 import static org.apache.commons.lang.math.NumberUtils.max;
 import static org.apache.commons.lang.math.NumberUtils.min;
 
@@ -31,40 +35,14 @@ public class SearchTree {
      */
     void expandNode(Node n) {
         if (n.children != null) return;
-        List<Move> moves = new ArrayList<Move>();
 
+        List<Move> moves = getTrainMoves(n);
+        moves = addDestinationToMoves(n, moves);
+        moves = addDriverToMoves(n, moves);
+        moves = addConductorToMoves(n, moves);
+        moves = addOtherPersonnelToMoves(n, moves);
+        calculateTravelTimes(moves);
 
-        for (int train = 0; train < gameData.trainIds.length; ++train) {
-
-            for (int targetStation = 0; targetStation < gameData.stationNames.length; ++targetStation) {
-                if (n.trainStations[train] == targetStation) continue;
-                if (gameData.trackBlocked[n.trainStations[train]][targetStation]) continue;
-
-                for (int driver = 0; driver < gameData.personnelIds.length; ++driver) {
-                    if (n.personnelStations[driver] != n.trainStations[train]) continue;
-                    if (gameData.personnelTypes[driver] != PersonnelType.DRIVER) continue;
-
-                    for (int conductor = 0; conductor < gameData.personnelIds.length; ++conductor) {
-                        if (n.personnelStations[conductor] != n.trainStations[train]) continue;
-                        if (gameData.personnelTypes[conductor] != PersonnelType.CONDUCTOR) continue;
-
-                        Move m = new Move();
-                        m.train = train;
-                        m.fromStation = n.trainStations[train];
-                        m.toStation = targetStation;
-                        m.driver = driver;
-                        m.conductor = conductor;
-
-                        m.timeStart = max(n.trainTimes[train], n.personnelTimes[conductor], n.personnelTimes[driver]);
-                        m.timeEnd = m.timeStart + gameData.getTravelTime(m.fromStation, m.toStation, gameData.trainTypes[train]);
-
-                        m.personnelPassengers = new int[0];
-
-                        moves.add(m);
-                    }
-                }
-            }
-        }
         sort(moves);
         n.children = new ArrayList<Node>();
 
@@ -73,6 +51,107 @@ public class SearchTree {
             n.children.add(new Node(n, m));
         }
     }
+
+    private List<Move> getTrainMoves(Node node) {
+        List<Move> moves = new ArrayList<Move>();
+        for (int train = 0; train < gameData.trainIds.length; ++train) {
+            Move move = new Move();
+            move.train = train;
+            move.fromStation = node.trainStations[train];
+            move.timeStart = node.trainTimes[train];
+            moves.add(move);
+        }
+        return moves;
+    }
+
+    private List<Move> addDestinationToMoves(Node node, List<Move> origMoves) {
+        List<Move> newMoves = new ArrayList<Move>();
+        for (Move origMove : origMoves) {
+            for (int station = 0; station < gameData.stationNames.length; ++station) {
+                if (gameData.trackBlocked[origMove.fromStation][station]) continue;
+
+                Move newMove = new Move(origMove);
+                newMove.toStation = station;
+                newMoves.add(newMove);
+            }
+        }
+
+        return newMoves;
+    }
+
+    private List<Move> addDriverToMoves(Node node, List<Move> origMoves) {
+        List<Move> newMoves = new ArrayList<Move>();
+        for (Move origMove : origMoves) {
+            for (int person = 0; person < gameData.personnelIds.length; ++person) {
+                if (gameData.personnelTypes[person] != PersonnelType.DRIVER) continue;
+                if (node.personnelStations[person] != origMove.fromStation) continue;
+
+                Move newMove = new Move(origMove);
+                newMove.driver = person;
+                newMove.timeStart = Math.max(origMove.timeStart, node.personnelTimes[person]);
+                newMoves.add(newMove);
+            }
+        }
+        return newMoves;
+    }
+
+    private List<Move> addConductorToMoves(Node node, List<Move> origMoves) {
+        List<Move> newMoves = new ArrayList<Move>();
+        for (Move origMove : origMoves) {
+            for (int person = 0; person < gameData.personnelIds.length; ++person) {
+                if (gameData.personnelTypes[person] != PersonnelType.CONDUCTOR) continue;
+                if (node.personnelStations[person] != origMove.fromStation) continue;
+
+                Move newMove = new Move(origMove);
+                newMove.conductor = person;
+                newMove.timeStart = Math.max(origMove.timeStart, node.personnelTimes[person]);
+                newMoves.add(newMove);
+            }
+        }
+        return newMoves;
+    }
+
+    private List<Move> addOtherPersonnelToMoves(Node node, List<Move> origMoves) {
+        List<Move> newMoves = new ArrayList<Move>();
+        for (Move origMove : origMoves) {
+            Set<Integer> eligibles = new HashSet<Integer>();
+
+            for (int person = 0; person < gameData.personnelIds.length; ++person) {
+                if (node.personnelStations[person] != origMove.fromStation) continue;
+                if (gameData.personnelTypes[person] == PersonnelType.DRIVER && person > origMove.driver) {
+                    eligibles.add(person);
+                }
+                if (gameData.personnelTypes[person] == PersonnelType.CONDUCTOR && person > origMove.conductor) {
+                    eligibles.add(person);
+                }
+            }
+
+            for (Set<Integer> subset : powerset(eligibles)) {
+                Move newMove = new Move(origMove);
+                Integer[] persons = new Integer[subset.size()];
+                subset.toArray(persons);
+                newMove.personnelPassengers = toPrimitive(persons);
+                newMove.timeStart = Math.max(origMove.timeStart, departureTime(node, subset));
+                newMoves.add(newMove);
+            }
+        }
+        return newMoves;
+    }
+
+    private void calculateTravelTimes(List<Move> moves) {
+        for (Move move : moves) {
+            move.timeEnd = move.timeStart + gameData.getTravelTime(move.fromStation, move.toStation, gameData.trainTypes[move.train]);
+        }
+    }
+
+    private static int departureTime(Node n, Set<Integer> persons) {
+        int time = 0;
+        for (int person : persons) {
+            time = Math.max(time, n.personnelTimes[person]);
+        }
+        return time;
+    }
+
 
     /**
      * Check if the node is a solution to the problem.

@@ -3,6 +3,7 @@ package eu.petersmit.nscontest;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 import static java.util.Arrays.fill;
+import static org.apache.commons.lang.ArrayUtils.toObject;
 
 /**
  * IOManager is a collection of static methods that read values from
@@ -186,7 +188,15 @@ public class IOManager {
             parts.add(gameData.getTrainId(move.train));
             parts.add(gameData.getPersonnelId(move.conductor));
             parts.add(gameData.getPersonnelId(move.driver));
-            parts.add("");
+            if(move.personnelPassengers == null) {
+                parts.add("");
+            } else {
+                List<String> list = new ArrayList<String>();
+                for (int i : move.personnelPassengers) {
+                    list.add(gameData.personnelIds[i]);
+                }
+                parts.add(StringUtils.join(list, '|'));
+            }
 
             csvWriter.writeNext(parts.toArray(new String[parts.size()]));
             // do something with move

@@ -16,6 +16,23 @@ public class Move implements Comparable<Move> {
     int[] passengers;
     int[] personnelPassengers;
 
+    public Move() {}
+
+    public Move(Move orig) {
+        train = orig.train;
+        fromStation = orig.fromStation;
+        toStation = orig.toStation;
+        driver = orig.driver;
+        conductor = orig.conductor;
+        timeStart = orig.timeStart;
+        timeEnd = orig.timeEnd;
+
+        if (orig.passengers != null)
+            passengers = orig.passengers.clone();
+        if (orig.personnelPassengers != null)
+            personnelPassengers = orig.personnelPassengers.clone();
+    }
+
     @Override
     public int compareTo(Move otherMove) {
         if (timeStart != otherMove.timeStart) return timeStart - otherMove.timeStart;
