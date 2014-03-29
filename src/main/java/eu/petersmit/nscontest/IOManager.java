@@ -42,14 +42,14 @@ public class IOManager {
      * @throws IOException In case the file can not be read
      */
     static void readConnection(GameData gameData, String filename) throws IOException {
-        List<String[]> ConnectionEntries = new ArrayList<String[]>();
+        List<String[]> connectionEntries = new ArrayList<String[]>();
 
         Set<String> stationNames = new HashSet<String>();
 
         CSVReader csvReader = new CSVReader(new FileReader(filename), ',', '"', 1);
         for (String[] line : csvReader.readAll()) {
             if (line.length >= 4) {
-                ConnectionEntries.add(line);
+                connectionEntries.add(line);
                 stationNames.add(line[0]);
                 stationNames.add(line[1]);
             }
@@ -68,7 +68,7 @@ public class IOManager {
             j++;
         }
 
-        for (String[] line : ConnectionEntries) {
+        for (String[] line : connectionEntries) {
             int from = gameData.getStationId(line[0]);
             int to = gameData.getStationId(line[1]);
             int distance = Integer.parseInt(line[2]);
@@ -217,9 +217,9 @@ public class IOManager {
     }
 
     private static String getOutputTime(int time) {
-        time += 30;
-        int hours = (18 + time / 60) % 24;
-        int minutes = time % 60;
+        int tempTime = time + 30;
+        int hours = (18 + tempTime / 60) % 24;
+        int minutes = tempTime % 60;
 
         return String.format("%02d%02d", hours, minutes);
     }

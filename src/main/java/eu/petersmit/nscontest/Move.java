@@ -43,4 +43,8 @@ public class Move implements Comparable<Move> {
 
         return 0;
     }
+
+    public boolean equals(Object otherMove) {
+        return this == otherMove;
+    }
 }

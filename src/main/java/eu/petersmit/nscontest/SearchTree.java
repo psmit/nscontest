@@ -83,8 +83,8 @@ public class SearchTree {
         List<Move> newMoves = new ArrayList<Move>();
         for (Move origMove : origMoves) {
             for (int person = 0; person < gameData.personnelIds.length; ++person) {
-                if (gameData.personnelTypes[person] != PersonnelType.DRIVER) continue;
-                if (node.personnelStations[person] != origMove.fromStation) continue;
+                if (gameData.personnelTypes[person] != PersonnelType.DRIVER || node.personnelStations[person] != origMove.fromStation)
+                    continue;
 
                 Move newMove = new Move(origMove);
                 newMove.driver = person;
@@ -99,8 +99,8 @@ public class SearchTree {
         List<Move> newMoves = new ArrayList<Move>();
         for (Move origMove : origMoves) {
             for (int person = 0; person < gameData.personnelIds.length; ++person) {
-                if (gameData.personnelTypes[person] != PersonnelType.CONDUCTOR) continue;
-                if (node.personnelStations[person] != origMove.fromStation) continue;
+                if (gameData.personnelTypes[person] != PersonnelType.CONDUCTOR || node.personnelStations[person] != origMove.fromStation)
+                    continue;
 
                 Move newMove = new Move(origMove);
                 newMove.conductor = person;
