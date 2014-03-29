@@ -188,7 +188,7 @@ public class IOManager {
             parts.add(gameData.getTrainId(move.train));
             parts.add(gameData.getPersonnelId(move.conductor));
             parts.add(gameData.getPersonnelId(move.driver));
-            if(move.personnelPassengers == null) {
+            if (move.personnelPassengers == null) {
                 parts.add("");
             } else {
                 List<String> list = new ArrayList<String>();

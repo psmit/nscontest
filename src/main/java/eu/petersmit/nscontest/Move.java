@@ -3,7 +3,7 @@ package eu.petersmit.nscontest;
 /**
  * Created by psmit on 3/28/14.
  */
-public class Move implements Comparable<Move> {
+public class Move {
     int train;
     int fromStation;
     int toStation;
@@ -16,7 +16,8 @@ public class Move implements Comparable<Move> {
     int[] passengers;
     int[] personnelPassengers;
 
-    public Move() {}
+    public Move() {
+    }
 
     public Move(Move orig) {
         train = orig.train;
@@ -31,16 +32,6 @@ public class Move implements Comparable<Move> {
             passengers = orig.passengers.clone();
         if (orig.personnelPassengers != null)
             personnelPassengers = orig.personnelPassengers.clone();
-    }
-
-    @Override
-    public int compareTo(Move otherMove) {
-        if (timeStart != otherMove.timeStart) {
-            return timeStart - otherMove.timeStart;
-        }  else if (train != otherMove.train) {
-            return train - otherMove.train;
-        }
-        return 0;
     }
 
 }

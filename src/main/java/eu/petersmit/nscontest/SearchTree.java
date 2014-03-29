@@ -1,22 +1,20 @@
 package eu.petersmit.nscontest;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static eu.petersmit.nscontest.Util.powerset;
 import static java.util.Arrays.fill;
 import static java.util.Collections.sort;
 import static org.apache.commons.lang.ArrayUtils.toPrimitive;
-import static org.apache.commons.lang.math.NumberUtils.max;
-import static org.apache.commons.lang.math.NumberUtils.min;
 
 /**
  * Search tree contains the node structure for finding a solution. A
  * Search algorithm is using the public methods to expand through the tree
  */
 public class SearchTree {
+    private Node root;
+    private GameData gameData;
+
     /**
      * Initialize the tree with it's root node
      *
@@ -26,6 +24,14 @@ public class SearchTree {
         this.gameData = gameData;
 
         root = new Node(gameData);
+    }
+
+    private static int departureTime(Node n, Set<Integer> persons) {
+        int time = 0;
+        for (int person : persons) {
+            time = Math.max(time, n.personnelTimes[person]);
+        }
+        return time;
     }
 
     /**
@@ -41,14 +47,15 @@ public class SearchTree {
         moves = addDriverToMoves(n, moves);
         moves = addConductorToMoves(n, moves);
         moves = addOtherPersonnelToMoves(n, moves);
-        calculateTravelTimes(moves);
         moves = addPassengersToMoves(n, moves);
+        calculateTravelTimes(moves);
 
-        sort(moves);
+        MoveCompare comp = new MoveCompare();
+        sort(moves, comp);
         n.children = new ArrayList<Node>();
 
         for (Move m : moves) {
-            if (n.move != null && (n.move.compareTo(m) > 0)) continue;
+            if (n.move != null && (comp.compare(n.move, m) > 0)) continue;
             n.children.add(new Node(n, m));
         }
     }
@@ -140,11 +147,13 @@ public class SearchTree {
     }
 
     private List<Move> addPassengersToMoves(Node node, List<Move> origMoves) {
+        //TODO: at this moment only one type of passengers go with one train. Fix this later
+        //TODO: no check if passengers have actually arrived at station
         List<Move> newMoves = new ArrayList<Move>();
         for (Move origMove : origMoves) {
-            for (int passengerDestination = 0; passengerDestination < gameData.stationNames.length; ++ passengerDestination) {
+            for (int passengerDestination = 0; passengerDestination < gameData.stationNames.length; ++passengerDestination) {
                 if (passengerDestination == origMove.fromStation ||
-                    node.stationPassengers[origMove.fromStation][passengerDestination] == 0) continue;
+                        node.stationPassengers[origMove.fromStation][passengerDestination] == 0) continue;
 
                 Move newMove = new Move(origMove);
                 newMove.passengers = new int[gameData.stationNames.length];
@@ -164,15 +173,6 @@ public class SearchTree {
                     gameData.getTravelTime(move.fromStation, move.toStation, gameData.trainTypes[move.train]);
         }
     }
-
-    private static int departureTime(Node n, Set<Integer> persons) {
-        int time = 0;
-        for (int person : persons) {
-            time = Math.max(time, n.personnelTimes[person]);
-        }
-        return time;
-    }
-
 
     /**
      * Check if the node is a solution to the problem.
@@ -279,8 +279,6 @@ public class SearchTree {
             }
 
 
-
-
         }
 
         int countChildren() {
@@ -295,6 +293,16 @@ public class SearchTree {
         }
     }
 
-    private Node root;
-    private GameData gameData;
+    class MoveCompare implements Comparator<Move> {
+
+        @Override
+        public int compare(Move move, Move move2) {
+            if (move.timeStart != move2.timeStart) {
+                return move.timeStart - move2.timeStart;
+            } else if (move.train != move2.train) {
+                return move.train - move2.train;
+            }
+            return 0;
+        }
+    }
 }

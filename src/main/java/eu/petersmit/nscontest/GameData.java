@@ -14,9 +14,9 @@ enum PersonnelType {
 }
 
 enum TrainType {
-    INTERCITY(140,600),
-    SPRINTERA(125,400),
-    SPRINTERB(140,150);
+    INTERCITY(140, 600),
+    SPRINTERA(125, 400),
+    SPRINTERB(140, 150);
 
     public final int speed;
     public final int capacity;
