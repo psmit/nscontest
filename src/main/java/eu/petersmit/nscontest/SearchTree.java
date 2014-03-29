@@ -42,6 +42,7 @@ public class SearchTree {
         moves = addConductorToMoves(n, moves);
         moves = addOtherPersonnelToMoves(n, moves);
         calculateTravelTimes(moves);
+        moves = addPassengersToMoves(n, moves);
 
         sort(moves);
         n.children = new ArrayList<Node>();
@@ -138,9 +139,29 @@ public class SearchTree {
         return newMoves;
     }
 
+    private List<Move> addPassengersToMoves(Node node, List<Move> origMoves) {
+        List<Move> newMoves = new ArrayList<Move>();
+        for (Move origMove : origMoves) {
+            for (int passengerDestination = 0; passengerDestination < gameData.stationNames.length; ++ passengerDestination) {
+                if (passengerDestination == origMove.fromStation ||
+                    node.stationPassengers[origMove.fromStation][passengerDestination] == 0) continue;
+
+                Move newMove = new Move(origMove);
+                newMove.passengers = new int[gameData.stationNames.length];
+                fill(newMove.passengers, 0);
+                newMove.passengers[passengerDestination] = Math.max(gameData.trainTypes[origMove.train].capacity,
+                        node.stationPassengers[origMove.fromStation][passengerDestination]);
+
+                newMoves.add(newMove);
+            }
+        }
+        return newMoves;
+    }
+
     private void calculateTravelTimes(List<Move> moves) {
         for (Move move : moves) {
-            move.timeEnd = move.timeStart + gameData.getTravelTime(move.fromStation, move.toStation, gameData.trainTypes[move.train]);
+            move.timeEnd = move.timeStart +
+                    gameData.getTravelTime(move.fromStation, move.toStation, gameData.trainTypes[move.train]);
         }
     }
 
@@ -186,7 +207,7 @@ public class SearchTree {
     /**
      * Get the root node
      *
-     * @return
+     * @return root node
      */
     public Node getRoot() {
         return root;
@@ -238,6 +259,11 @@ public class SearchTree {
             personnelTimes = parent.personnelTimes.clone();
             personnelStations = parent.personnelStations.clone();
 
+            for (int destination = 0; destination < gameData.stationNames.length; ++destination) {
+                stationPassengers[move.fromStation][destination] -= move.passengers[destination];
+                stationPassengers[move.toStation][destination] += move.passengers[destination];
+            }
+
             trainTimes[move.train] = move.timeEnd;
             trainStations[move.train] = move.toStation;
 
@@ -246,6 +272,13 @@ public class SearchTree {
 
             personnelTimes[move.conductor] = move.timeEnd;
             personnelStations[move.conductor] = move.toStation;
+
+            for (int person : move.personnelPassengers) {
+                personnelTimes[person] = move.timeEnd;
+                personnelStations[person] = move.toStation;
+            }
+
+
 
 
         }

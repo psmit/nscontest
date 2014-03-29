@@ -35,16 +35,12 @@ public class Move implements Comparable<Move> {
 
     @Override
     public int compareTo(Move otherMove) {
-        if (timeStart != otherMove.timeStart) return timeStart - otherMove.timeStart;
-        if (train != otherMove.train) return train - otherMove.train;
-        if (toStation != otherMove.toStation) return toStation - otherMove.toStation;
-        if (driver != otherMove.driver) return driver - otherMove.driver;
-        if (conductor != otherMove.conductor) return conductor - otherMove.conductor;
-
+        if (timeStart != otherMove.timeStart) {
+            return timeStart - otherMove.timeStart;
+        }  else if (train != otherMove.train) {
+            return train - otherMove.train;
+        }
         return 0;
     }
 
-    public boolean equals(Object otherMove) {
-        return this == otherMove;
-    }
 }
