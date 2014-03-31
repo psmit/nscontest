@@ -3,6 +3,8 @@ package eu.petersmit.nscontest;
 import org.apache.commons.lang.ArrayUtils;
 
 import static java.lang.Math.floor;
+import static java.lang.Math.min;
+import static java.util.Arrays.fill;
 
 /**
  * Created by psmit on 3/28/14.
@@ -45,6 +47,8 @@ public class GameData {
     int[] trainStartStation;
     int[] trainEndStation;
 
+    int[][] minDistances;
+
     int getStationId(String name) {
         return ArrayUtils.indexOf(stationNames, name);
     }
@@ -63,5 +67,16 @@ public class GameData {
 
     public String getPersonnelId(int personnel) {
         return personnelIds[personnel];
+    }
+
+    public void fillMinDistances() {
+        minDistances = new int[stationNames.length][stationNames.length];
+        for (int[] row : minDistances) fill(row, -1);
+        for (int station = 0; station < stationNames.length; ++station) {
+            minDistances[station][station] = 0;
+            for (int target = 0; target < stationNames.length; ++target) {
+
+            }
+        }
     }
 }

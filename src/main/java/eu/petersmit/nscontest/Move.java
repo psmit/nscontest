@@ -16,6 +16,8 @@ public class Move {
     int[] passengers;
     int[] personnelPassengers;
 
+    long cost;
+
     public Move() {
     }
 
@@ -32,6 +34,8 @@ public class Move {
             passengers = orig.passengers.clone();
         if (orig.personnelPassengers != null)
             personnelPassengers = orig.personnelPassengers.clone();
+
+        cost = 0;
     }
 
 }

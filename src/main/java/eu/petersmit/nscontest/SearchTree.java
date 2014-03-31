@@ -49,15 +49,20 @@ public class SearchTree {
         moves = addOtherPersonnelToMoves(n, moves);
         moves = addPassengersToMoves(n, moves);
         calculateTravelTimes(moves);
+        calculateCosts(moves);
 
-        MoveCompare comp = new MoveCompare();
-        sort(moves, comp);
+
+        sort(moves, new MoveCompare());
         n.children = new ArrayList<Node>();
 
         for (Move m : moves) {
-            if (n.move != null && (comp.compare(n.move, m) > 0)) continue;
+            if (n.move != null && (new MoveCompare().compare(n.move, m) > 0)) continue;
             n.children.add(new Node(n, m));
         }
+    }
+
+    private void calculateCosts(List<Move> moves) {
+
     }
 
     private List<Move> getTrainMoves(Node node) {
@@ -229,6 +234,8 @@ public class SearchTree {
         int[] personnelTimes;
         int[] personnelStations;
 
+        long cost;
+
         List<Node> children = null;
 
         Node(GameData gameData) {
@@ -248,6 +255,8 @@ public class SearchTree {
             fill(personnelTimes, 0);
 
             personnelStations = gameData.personnelStations.clone();
+
+            cost = 0;
         }
 
         Node(Node parent, Move move) {
@@ -278,6 +287,7 @@ public class SearchTree {
                 personnelStations[person] = move.toStation;
             }
 
+            cost = parent.cost + move.cost;
 
         }
 
@@ -293,7 +303,7 @@ public class SearchTree {
         }
     }
 
-    class MoveCompare implements Comparator<Move> {
+    static class MoveCompare implements Comparator<Move> {
 
         @Override
         public int compare(Move move, Move move2) {
