@@ -62,7 +62,34 @@ public class SearchTree {
     }
 
     private void calculateCosts(List<Move> moves) {
+        for (Move move : moves) {
+            move.cost = move.timeEnd - move.timeStart;
+        }
 
+    }
+
+    public int minCost(Node n) {
+        int cost = 0;
+        for (int station = 0; station < gameData.stationNames.length; ++station) {
+            for (int target_station = 0; target_station < gameData.stationNames.length; ++target_station) {
+                if (n.stationPassengers[station][target_station] > 0) {
+                    cost += (int) Math.floor((double) n.stationPassengers[station][target_station] *
+                            (double) gameData.minDistance[station][target_station] / (TrainType.INTERCITY.speed / 60.0) / (double) TrainType.INTERCITY.capacity);
+                }
+            }
+        }
+
+        for (int train = 0; train < gameData.trainIds.length; ++train) {
+            int min_distance = Integer.MAX_VALUE;
+            for (int station = 0; station < gameData.stationNames.length; ++station) {
+                if (station == gameData.trainEndStation[train] || hasPassengers(n, station)) {
+                    min_distance = Math.min(min_distance, gameData.minDistance[n.trainStations[train]][station]);
+                }
+            }
+            cost += (int) Math.floor((double) min_distance / (gameData.trainTypes[train].speed / 60.0));
+        }
+
+        return cost;
     }
 
     private List<Move> getTrainMoves(Node node) {
@@ -151,6 +178,25 @@ public class SearchTree {
         return newMoves;
     }
 
+    private boolean hasPassengers(Node node, int station) {
+        for (int target_station = 0; target_station < gameData.stationNames.length; ++target_station) {
+            if (node.stationPassengers[station][target_station] > 0) return true;
+        }
+        return false;
+    }
+
+    private boolean isOkEmptyPassengerMove(Node node, Move move) {
+        for (int realTarget = 0; realTarget < gameData.stationNames.length; ++realTarget) {
+            if ((realTarget == gameData.trainEndStation[move.train] || hasPassengers(node, realTarget)) &&
+                    (gameData.minDistance[move.fromStation][realTarget] > gameData.minDistance[move.toStation][realTarget])) {
+
+                return true;
+
+            }
+        }
+        //TODO, make sure train goes closer to passengers or end station
+        return false;
+    }
     private List<Move> addPassengersToMoves(Node node, List<Move> origMoves) {
         //TODO: at this moment only one type of passengers go with one train. Fix this later
         //TODO: no check if passengers have actually arrived at station
@@ -163,9 +209,15 @@ public class SearchTree {
                 Move newMove = new Move(origMove);
                 newMove.passengers = new int[gameData.stationNames.length];
                 fill(newMove.passengers, 0);
-                newMove.passengers[passengerDestination] = Math.max(gameData.trainTypes[origMove.train].capacity,
+                newMove.passengers[passengerDestination] = Math.min(gameData.trainTypes[origMove.train].capacity,
                         node.stationPassengers[origMove.fromStation][passengerDestination]);
 
+                newMoves.add(newMove);
+            }
+            if (isOkEmptyPassengerMove(node, origMove)) {
+                Move newMove = new Move(origMove);
+                newMove.passengers = new int[gameData.stationNames.length];
+                fill(newMove.passengers, 0);
                 newMoves.add(newMove);
             }
         }

@@ -30,6 +30,8 @@ public class App {
         IOManager.readPersonnel(gameData, inputDirectory + "/personeel.csv");
         IOManager.readTrains(gameData, inputDirectory + "/treinstellen.csv");
 
+        gameData.fillMinDistances();
+
         SearchTree searchTree = new SearchTree(gameData);
 
         DepthFirstSearch dfs = new DepthFirstSearch(searchTree, gameData);
@@ -44,7 +46,6 @@ public class App {
 
         CommandLineParser parser = new BasicParser();
         try {
-            // parse the command line arguments
             CommandLine line = parser.parse(options, args);
             if (line.hasOption("help")) {
                 HelpFormatter formatter = new HelpFormatter();

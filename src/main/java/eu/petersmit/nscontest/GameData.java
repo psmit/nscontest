@@ -47,7 +47,7 @@ public class GameData {
     int[] trainStartStation;
     int[] trainEndStation;
 
-    int[][] minDistances;
+    int[][] minDistance;
 
     int getStationId(String name) {
         return ArrayUtils.indexOf(stationNames, name);
@@ -70,12 +70,42 @@ public class GameData {
     }
 
     public void fillMinDistances() {
-        minDistances = new int[stationNames.length][stationNames.length];
-        for (int[] row : minDistances) fill(row, -1);
+        minDistance = new int[stationNames.length][stationNames.length];
+        for (int[] row : minDistance) fill(row, -1);
         for (int station = 0; station < stationNames.length; ++station) {
-            minDistances[station][station] = 0;
+            minDistance[station][station] = 0;
             for (int target = 0; target < stationNames.length; ++target) {
+                if (!trackBlocked[station][target]) {
+                    minDistance[station][target] = minDistance[target][station] = trackDistances[station][target];
+                }
+            }
+        }
 
+        boolean updated = true;
+        while (updated) {
+            updated = false;
+
+            for (int station = 0; station < stationNames.length; ++station) {
+                for (int target = 0; target < stationNames.length; ++target) {
+                    if (target == station) continue;
+                    int min_distance = minDistance[station][target];
+                    if (min_distance < 0) min_distance = Integer.MAX_VALUE;
+                    int orig_mindistance = min_distance;
+
+
+                    for (int neighbour = 0; neighbour < stationNames.length; ++neighbour) {
+                        if (neighbour == station) continue;
+                        if (trackBlocked[station][neighbour]) continue;
+                        if (minDistance[neighbour][target] > 0) {
+                            min_distance = min(min_distance, trackDistances[station][neighbour] + minDistance[neighbour][target]);
+                        }
+                    }
+
+                    if (min_distance < orig_mindistance) {
+                        updated = true;
+                        minDistance[station][target] = minDistance[target][station] = min_distance;
+                    }
+                }
             }
         }
     }

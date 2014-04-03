@@ -197,10 +197,17 @@ public class IOManager {
                 }
                 parts.add(StringUtils.join(list, '|'));
             }
+            List<String> passengerList = new ArrayList<String>();
+            for (int i = 0; i < move.passengers.length; ++i) {
+                if (move.passengers[i] > 0) {
+                    passengerList.add(gameData.getStationName(i));
+                    passengerList.add(Integer.toString(move.passengers[i]));
+                }
+            }
+            parts.add(StringUtils.join(passengerList, '|'));
 
             csvWriter.writeNext(parts.toArray(new String[parts.size()]));
-            // do something with move
-            csvWriter.writeNext(new String[0]);
+
         }
     }
 
